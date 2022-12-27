@@ -29,7 +29,26 @@ public class UserController {
 
     @GetMapping("/user/{id}")
     public User getUserById(@PathVariable Long id){
+        return userRepository.findById(id).orElseThrow(() -> new UserNotFoundException(id));
+    }
+
+    @PutMapping("/user/{id}")
+    public User updateUser(@RequestBody User newUser, @PathVariable Long id) {
         return userRepository.findById(id)
-                .orElseThrow(() ->new UserNotFoundException(id));
+                .map(user -> {
+                    user.setName(newUser.getName());
+                    user.setUsername(newUser.getUsername());
+                    user.setEmail(newUser.getEmail());
+                    return userRepository.save(user);
+                }).orElseThrow(() -> new UserNotFoundException(id));
+    }
+
+    @DeleteMapping("/user/{id}")
+    public String deleteUser(@PathVariable Long id) {
+        if(!userRepository.existsById(id)) {
+            throw new UserNotFoundException(id);
+        }
+        userRepository.deleteById(id);
+        return "User with id " + id + "has been successfully deleted.";
     }
 }
